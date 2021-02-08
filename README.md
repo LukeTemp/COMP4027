@@ -3,6 +3,7 @@
 
 Dependencies:
   - random-1.2.0: can be installed via cabal with the command 'cabal install random-1.2.0'
+  - deepseq-1.4.5.0: can be installed via cabal with the command 'cabal install deepseq-1.4.5.0'
 
 Using the code (GHCI):
   - Run 'testF' to check the correctness of training.
