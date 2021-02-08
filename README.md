@@ -12,7 +12,7 @@ Using the code (GHCI):
     - Train the model on the target function given by zipping the inputs and targets in 'trainF'.
   - After training the model: 
     - 'testF' prints the weights as well as computing and printing model predictions for each input in the test data (currently defined in the where clause of 'testF').
-    - 'main' prints convergence time excluding IO operations beyond getCurrentTime (note that if weights are randomly initialized, this IO time will be included in the measured time).
+    - 'main' prints convergence time without any IO operations other than getCurrentTime (note that if weights are randomly initialized then this IO will be included in the measured time).
 
 Comments:
   - Currently, the sequential multi-layer perceptron is trained and tested on a custom binary function described on line 138 of 'MLP_sequential.lhs':
