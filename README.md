@@ -22,7 +22,6 @@ Using the code:
     - To toggle stochastic gradient descent, switch the commented/uncommented bindings for dataset in trainMNIST.
     - The model can either be trained using online learning or batch learning, by switching the commented/uncommented definitions for ((tE,vE),model') in trainNetForN.
     - The number of epochs to train for is the definition of nEpochs in trainMNIST.
-    - The model can either be printed (to be copied, pasted and then tested) or strictly/fully evaluated (to measure training time without printing).
     - The trained model can either be printed or strictly/fully evaluated, by switching the commented/uncommented lines in timedRun.
       - To observe the time a model takes to train, it is better to fully evaluate it without printing so that printing time is not measured.
       - To test a model, it must be printed so that it can be copied and pasted into the definition of getMNISTmodel in 'TrainedModel', where activation functions must manually be inserted before this file is saved.
