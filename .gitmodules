@@ -1,0 +1,6 @@
+[submodule "mnist"]
+	path = mnist
+	url = https://git.thm.de/akwl20/neural-network-haskell.git
+[submodule "MNIST.hs"]
+	path = MNIST.hs
+	url = https://git.thm.de/akwl20/neural-network-haskell.git
