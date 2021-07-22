@@ -29,7 +29,7 @@ Using the code:
     - Model predictions are compared to testset labels to show how many samples (out of 10000) the model correctly predicts. 
 
 Comments:
-  - If an error occurs due to lack of virtual memory, then you may need to increase paging size due to the size of the models used to learn the MNIST dataset.
+  - If an error occurs due to lack of virtual memory, then you may need to increase the paging file size due to the size of the models used to learn the MNIST dataset.
     - On Windows, this can be done by going into system properties (type 'edit the system environment variables' into the task bar); advanced; performance options; advanced; virtual memory.
   - Examples of pre-trained models can be found in the models.txt file, along with the hyper-parameters used to obtain these models.
   
