@@ -1,5 +1,5 @@
 # COMP4027
- Haskell deep learning library.
+ Haskell deep learning library (The readme below applies to the original-submission branch)
 
 Dependencies (each of which can be installed via cabal e.g. 'cabal install random-1.2.0'):
   - random-1.2.0
