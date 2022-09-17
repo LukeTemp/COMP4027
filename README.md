@@ -1,11 +1,11 @@
 # COMP4027
- Haskell deep learning library.
+ Haskell deep learning library (The readme below applies to the original-submission branch)
 
 Dependencies (each of which can be installed via cabal e.g. 'cabal install random-1.2.0'):
   - random-1.2.0
   - deepseq-1.4.5.0
   - JuicyPixels-util-0.2 (for the MNIST module)
-  - JuicyPixels-util-3.3.5 (for the MNIST module)
+  - JuicyPixels-3.3.5 (for the MNIST module)
   
 Acknowledgements:
   - The MNIST module and subdirectory are NOT my work, they have been sourced from https://git.thm.de/akwl20/neural-network-haskell
