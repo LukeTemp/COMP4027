@@ -1,11 +1,15 @@
+> module MLP_testing_MNIST where
+
 In this module are a number of functions that have been used to test models that have been trained on the MNIST dataset.
 
 > import Data.Time.Clock -- clock to measure convergence time
 > import Types -- all custom types/classes for parallel multi-layer perceptrons
 > import MNIST -- MNIST dataset for target function. Source: https://git.thm.de/akwl20/neural-network-haskell
 > import Data.Matrix -- toList operation for matrices
-> import TrainedModel -- the getMNISTmodel function returns a model trained for 1 epoch on the MNIST training dataset
 > import MLP_utils -- for feedFrwd and toLoss
+
+> import qualified Data.Text.IO as TXTIO
+> import qualified Data.Text as TXT
 
 The functions below have been defined to test models that have been trained on the MNIST dataset. The testMNIST function obtains the MNIST test dataset and uses this to test the model.
 In testModel, each sample is tested to see if the one hot encoded prediction is the same as the target, if so then 1 is added to a sum, otherwise 0 is added. The final sum tells us
@@ -39,7 +43,7 @@ The timedRun function below measures testing time for the model and will print h
 
 > timedRun = do 
 >     t0 <- getCurrentTime
->     let model = getMNISTmodel
+>     model <- read . TXT.unpack <$> TXTIO.readFile "trained_model" :: IO [UnactivatedLayer]
 >     err <- testMNIST model
 >     testData <- getTestSamples
 >     putStrLn ("Accuracy: " ++ show err ++ " out of " ++ show (length testData))
@@ -50,16 +54,3 @@ The main function below is configured to test a model trained on the MNIST datas
 
 > main :: IO ()
 > main = timedRun
-
-Useful debug commands:
-
-> getOut = outputs . head
-> f = feedFrwd getMNISTmodel
-> format (x,l) = (realToFrac <$> toList x, realToFrac <$> toList l)
-> formatxs = map format
-> testData' = formatxs <$> getTestSamples
-> target n = snd . head . drop n <$> testData'
-> input n = fst . head . drop n <$> testData'
-> prediction n = getOut . f <$> input n
-> getLoss :: (IO [Double], IO [Double]) -> IO [Double]
-> getLoss (iys,iys') = iys >>= (\ys -> iys' >>= (\ys' -> return $ toLoss (ys, ys')))

@@ -27,9 +27,9 @@ By using nextStage it is easy to define the feed forward function and back propa
 
 > feedFrwd :: [UnactivatedLayer] -> [NrnSignal] -> [ActivatedLayer]
 > feedFrwd uls inps = nextStage activLay uls inps
->    
+>
 > backProp :: [ActivatedLayer] -> [NrnSignal] -> [BackpropLayer]
-> backProp als err = nextStage backpropLay als err 
+> backProp als err = nextStage backpropLay als err
 
 Layers are activated using the activLay function, which takes an unactivated layer and previous layer outputs to produce outputs for the current layer and apply an activation function.
 
@@ -50,10 +50,10 @@ Computing derivatives this way is far easier than computing the derivatives for 
 computing cross entropy loss with respect to softmax outputs in the toLoss function. Check the definition of toLoss to see why this is the case.
 
 > activate :: (UnactivatedLayer, [NrnSignal], [NrnSignal]) -> ActivatedLayer
-> activate (UL sz wss af, is, os) = case af of 
+> activate (UL sz wss af, is, os) = case getActivationFunction af of
 >                                     AD f -> let (os',ds) = unzip $ f os in AL sz wss af is os' ds         -- activation that includes AD - Automatic Differentiation
 >                                     ND f -> let os'      = f os         in AL sz wss af is os' (repeat 1) -- activation that includes ND - No Differentiation
-                      
+
 The cross entropy loss function could be defined as: crossEntropy = [-(y * logBase 2 y') | (y,y') <- zip ys ys']
 However, activate has been implemented so that we can use toLoss to compute derivatives of Cross Entropy Loss with respect to unactivated neuron outputs, giving us a
 simpler definition:
@@ -119,9 +119,9 @@ The accum function adds elements from the same index of each sublist in a given 
 Note that getEta and getAlpha define values for the learning rate (the magnitude of a weight update) and alpha (the impact of momentum on a weight update), respectively:
 
 > getEta :: Double
-> getEta = 0.04
+> getEta = 0.15
 > getAlpha :: Double
-> getAlpha = 0.25
+> getAlpha = 0
 
 With forward passing and backpropagation implemented, it is now possible to combine these in a function that trains the model. The first and simplest approach to this is online learning, where back propagation occurs after every forward pass i.e. everytime a sample is processed. 
 Note that a sample is represented as a tuple containing a model input, a model target and a boolean specifying if that sample is validation data or not (in which case it is training data).

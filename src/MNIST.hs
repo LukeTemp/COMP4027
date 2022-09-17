@@ -36,12 +36,12 @@ import Codec.Picture.Png
 -- | 'getTrainingSamples' gets mnist training samples if the needed files are in "./mnist/"
 getTrainingSamples :: IO ([(Matrix Float, Matrix Float)]) -- ^ Training data as a list of pairs, where fst represents an image and snd the corresponding label
 
-getTrainingSamples = getTrainingSamplesWithPaths "mnist/train-images.idx3-ubyte" "mnist/train-labels.idx1-ubyte"
+getTrainingSamples = getTrainingSamplesWithPaths "src/mnist/train-images.idx3-ubyte" "src/mnist/train-labels.idx1-ubyte"
 
 -- | 'getTrainingSamples' gets mnist test samples if the needed files are in "./mnist/"
 getTestSamples :: IO ([(Matrix Float, Matrix Float)]) -- ^ Test data as a list of pairs, where fst represents an image and snd the corresponding label
 
-getTestSamples = getTestSamplesWithPaths "mnist/t10k-images.idx3-ubyte" "mnist/t10k-labels.idx1-ubyte"
+getTestSamples = getTestSamplesWithPaths "src/mnist/t10k-images.idx3-ubyte" "src/mnist/t10k-labels.idx1-ubyte"
 
 -- | 'getTrainingSamplesWithPaths' is used to parse the raw MNIST training data to a representation usable in Haskell
 getTrainingSamplesWithPaths :: FilePath                              -- ^ Path to "train-images.idx3-ubyte"

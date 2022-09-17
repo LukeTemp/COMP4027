@@ -1,3 +1,5 @@
+> module MLP_training_MNIST where
+
 In this module are a number of functions that have been used to train models from and test the code in MLP_utils using the MNIST dataset.
 
 > import Data.Time.Clock -- clock to measure convergence time
@@ -11,6 +13,9 @@ In this module are a number of functions that have been used to train models fro
 > import System.Random -- getStdRandom
 
 > import Control.DeepSeq -- deepseq to fully evaluate the trained network so that convergence times can be compared.
+
+> import qualified Data.Text.IO as TXTIO
+> import qualified Data.Text as TXT
 
 To test the batch learning code, I created and used the functions below. This test simply proves that when using a batch size of 1 the batch learning code performs the same as the 
 online learning code - it does not necessarily prove that the batch learning code is correct. To run the test, the main function should be redefined as 'main = test initMNIST >>= print' 
@@ -43,7 +48,7 @@ On simpler functions I trained the model until the error of an epoch was below a
 learn and we do not know how many epochs will cause the model to underfit/overfit to the training data. Therefore, this function gives us more control over the training process.
 
 > trainNetForN :: [UnactivatedLayer] -> ([([Double], [Double])], [Bool]) -> State Int ((Double, Double), [UnactivatedLayer])
-> trainNetForN model (trData,valid) = do 
+> trainNetForN model (trData,valid) = do
 >     modify $ flip (-) 1
 >     c <- get -- N of epochs remaining
 >     --let ((tE,vE),model') = evalEpochB model (trData,valid)  -- batch learning
@@ -59,8 +64,8 @@ of training/validation samples by x when normalizing these errors.
 
 > trainMNIST :: [UnactivatedLayer] -> IO ((Double, Double), [UnactivatedLayer])
 > trainMNIST model = do
->     let tSize = 5000 -- out of 60000
->     let vSize = 500 -- less than tSize    
+>     let tSize = 30000 -- out of 60000
+>     let vSize = 0 -- less than tSize
 >     let nEpochs = 1
 >     dataset <- take tSize <$> getTrainingSamples           -- non-stochastic gradient descent
 >     --dataset <- shuffle . take tSize <$> getTrainingSamples -- stochastic gradient descent
@@ -69,7 +74,7 @@ of training/validation samples by x when normalizing these errors.
 >     let dataset'     = format <$> dataset
 >     let ((tE,vE),model') = evalState (trainNetForN model (dataset', validation)) nEpochs
 >     let fI = fromIntegral
->     return ((tE / fI (tSize-vSize) / fI nEpochs, vE / fI vSize / fI nEpochs), model')   
+>     return ((tE / fI (tSize-vSize) / fI nEpochs, vE / fI vSize / fI nEpochs), model')
 
 To assign validation booleans to each sample in the training dataset, the following 2 functions have been defined. If SGD is used to train the model then the valids function can be 
 used, as this will simply use the last n samples in the shuffled training data as validation data. If SGD is not used then the user may want to randomly select their validation data,
@@ -84,10 +89,11 @@ which can done using the validsR function - this will shuffle the order of the v
 The timedRun function below measures training time for the model and can print this along with the training error, validation error and the model.
 
 > timedRun :: IO ()
-> timedRun = do 
+> timedRun = do
 >     t0 <- getCurrentTime
+>     initMNIST <- initWs [784,32,10]
 >     ((tE,vE),model) <- trainMNIST initMNIST
->     putStrLn $ show model       -- print the model
+>     TXTIO.writeFile "trained_model" (TXT.pack $ show model)
 >     --deepseq model $ return ()   -- do not print the model
 >     t1 <- getCurrentTime
 >     putStrLn ("Training error: " ++ show tE)
