@@ -1,3 +1,5 @@
+> {-# LANGUAGE LambdaCase #-}
+>
 > module MLP_training_MNIST where
 
 In this module are a number of functions that have been used to train models from and test the code in MLP_utils using the MNIST dataset.
@@ -29,8 +31,8 @@ samples from it.
 >
 > test' :: [UnactivatedLayer] -> ([([Double], [Double])], [Bool]) -> IO Bool
 > test' model tvData = do
->     let ((tE1,vE1),m1) = evalEpochB model tvData 
->     let ((tE2,vE2),m2) = evalEpoch model tvData 
+>     let ((tE1,vE1),m1) = evalEpochBatch model tvData
+>     let ((tE2,vE2),m2) = evalEpochOnline model tvData
 >     print $ (tE1 / fromIntegral tTSize, vE1 / fromIntegral tVSize)
 >     print $ (tE2 / fromIntegral tTSize, vE2 / fromIntegral tVSize)
 >     return (map weights m1 == map weights m2 && map size m1 == map size m2)
@@ -47,24 +49,28 @@ To train a model on the MNIST dataset, I created the function below: trainNetFor
 On simpler functions I trained the model until the error of an epoch was below an error threshold, but since the MNIST target function is much more complex, it will take longer to 
 learn and we do not know how many epochs will cause the model to underfit/overfit to the training data. Therefore, this function gives us more control over the training process.
 
-> trainNetForN :: [UnactivatedLayer] -> ([([Double], [Double])], [Bool]) -> State Int ((Double, Double), [UnactivatedLayer])
-> trainNetForN model (trData,valid) = do
->     modify $ flip (-) 1
->     c <- get -- N of epochs remaining
->     --let ((tE,vE),model') = evalEpochB model (trData,valid)  -- batch learning
->     let ((tE,vE),model') = evalEpoch model (trData,valid)   -- online learning
->     case c of 
->         0         -> return ((tE,vE),model')
->         otherwise -> trainNetForN model' (trData,valid) 
+> trainNetForN ::
+>     [UnactivatedLayer]
+>   -> ([([Double], [Double])], [Bool])
+>   -> Int
+>   -> IO ((Double, Double), [UnactivatedLayer])
+> trainNetForN model (trData,valid) = \case
+>   0 -> error "cannot train a model for 0 epochs" -- replace with a Left
+>   1 -> evalEpochFunction model (trData,valid)
+>   nEpochs -> do
+>     (_, model') <- evalEpochFunction model (trData,valid)
+>     trainNetForN model' (trData, valid) $ nEpochs - 1
+>   where evalEpochFunction = evalEpochOnlineWithPrinting -- online learning
+>   --where evalEpochFunction = evalEpochBatch -- batch learning
 
-To handle data preprocessing, such as shuffling the dataset for SGDF and formatting matrices into lists, I defined the trainMNIST function below. This function obtains the MNIST 
-training dataset, preprocesses it and feeds it to the trainNetForN function along with a specified number of epochs (currently set at 1). The resulting errors are then divided by 
-the number of training/validation samples over the batchSize to normalize them. Note that if a larger number of epochs were used, e.g. x epochs, then we would multiply the number 
-of training/validation samples by x when normalizing these errors. 
+To handle data preprocessing, such as shuffling the dataset for SGDF and formatting matrices into lists, I defined the trainMNIST function below. This function obtains the MNIST
+training dataset, preprocesses it and feeds it to the trainNetForN function along with a specified number of epochs (currently set at 1). The resulting errors are then divided by
+the number of training/validation samples over the batchSize to normalize them. Note that if a larger number of epochs were used, e.g. x epochs, then we would multiply the number
+of training/validation samples by x when normalizing these errors.
 
 > trainMNIST :: [UnactivatedLayer] -> IO ((Double, Double), [UnactivatedLayer])
 > trainMNIST model = do
->     let tSize = 30000 -- out of 60000
+>     let tSize = 60000 -- out of 60000
 >     let vSize = 0 -- less than tSize
 >     let nEpochs = 1
 >     dataset <- take tSize <$> getTrainingSamples           -- non-stochastic gradient descent
@@ -72,7 +78,7 @@ of training/validation samples by x when normalizing these errors.
 >     let validation   = valids (vSize, (tSize-vSize))     
 >     let format (x,l) = (realToFrac <$> toList x, realToFrac <$> toList l)
 >     let dataset'     = format <$> dataset
->     let ((tE,vE),model') = evalState (trainNetForN model (dataset', validation)) nEpochs
+>     ((tE,vE),model') <- trainNetForN model (dataset', validation) nEpochs
 >     let fI = fromIntegral
 >     return ((tE / fI (tSize-vSize) / fI nEpochs, vE / fI vSize / fI nEpochs), model')
 
@@ -99,11 +105,6 @@ The timedRun function below measures training time for the model and can print t
 >     putStrLn ("Training error: " ++ show tE)
 >     putStrLn ("Validation error: " ++ show vE)
 >     putStrLn ("Time to converge: " ++ show (diffUTCTime t1 t0))
-
-To use deepseq on the trained network, an instance of NFData must be defined for the UnactivatedLayer type.
-
-> instance NFData UnactivatedLayer where
->     rnf (UL _ ws _) = rnf ws
 
 The main function below is configured to train a model on the MNIST dataset.
 

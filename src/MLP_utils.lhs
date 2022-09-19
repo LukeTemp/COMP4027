@@ -1,14 +1,17 @@
 In this module are a number of functions that implement forward propagation and backpropagation in multi-layer perceptrons, as well as functions to train models using online learning and batch learning.
 
 > module MLP_utils
->     ( evalEpoch
->     , evalEpochB
+>     ( evalEpochOnline
+>     , evalEpochOnlineWithPrinting
+>     , evalEpochBatch
 >     , batchSize
 >     , feedFrwd
 >     , toLoss
 >     ) where
 
+> import Control.DeepSeq
 > import Control.Parallel -- for 'par' and 'pseq'
+> import Control.Monad (foldM)
 > import Data.List as L -- transpose to accumulate the error passed back to neurons in the previous layer
 > import Types -- all custom types/classes for parallel multi-layer perceptrons
 > import Data.List.Split as LS -- chunksOf function for batch learning in evalEpochB
@@ -210,11 +213,35 @@ Now that we have implemented a function that evaluates a sample for online learn
 fold these functions over a dataset (either a list of samples or a list of batches). Since the functions implemented above already add the error computed for a sample/batch to 
 accumulated error arguments, we only need to initialize the errors to (0,0) and feed in the initialized model before folding over the dataset.
 
-> evalEpoch :: [UnactivatedLayer] -> ([([Double], [Double])], [Bool]) -> ((Double, Double), [UnactivatedLayer])
-> evalEpoch model (trData,valid) = foldl' evalSample ((0,0), model) $ zip trData valid     
+> evalSampleWithPrinting :: Int
+>   -> ((Double, Double), [UnactivatedLayer])
+>   -> (Int, ([Double], [Double]), Bool)
+>   -> IO ((Double, Double), [UnactivatedLayer])
+> evalSampleWithPrinting trSetSize (trErrAndValErr, model) input = do
+>   let (sampleIndex, sampleAndLabel, useForValidation) = input
+>       progress = show sampleIndex ++ " / " ++ show trSetSize
+>       result = evalSample (trErrAndValErr, model) (sampleAndLabel, useForValidation)
+>   deepseq result $ print progress
+>   pure result
 
-> evalEpochB :: [UnactivatedLayer] -> ([([Double], [Double])], [Bool]) -> ((Double, Double), [UnactivatedLayer])
-> evalEpochB model (trData,valid) = foldl' evalBatch ((0,0), model) $ zip (chunksOf batchSize trData) (chunksOf batchSize valid)
+To use deepseq on the trained network, an instance of NFData must be defined for the UnactivatedLayer type.
+
+> instance NFData UnactivatedLayer where
+>     rnf (UL _ ws _) = rnf ws
+
+> evalEpochOnlineWithPrinting :: [UnactivatedLayer] -> ([([Double], [Double])], [Bool]) -> IO ((Double, Double), [UnactivatedLayer])
+> evalEpochOnlineWithPrinting model (trData,valid) =
+>   foldM (evalSampleWithPrinting $ length trData) ((0,0), model) $ zip3 [1..] trData valid
+
+> evalEpochOnline ::
+>   [UnactivatedLayer]
+>   -> ([([Double], [Double])], [Bool])
+>   -> ((Double, Double), [UnactivatedLayer])
+> evalEpochOnline model (trData,valid) =
+>   foldl' evalSample ((0,0), model) $ zip trData valid
+
+> evalEpochBatch :: [UnactivatedLayer] -> ([([Double], [Double])], [Bool]) -> ((Double, Double), [UnactivatedLayer])
+> evalEpochBatch model (trData,valid) = foldl' evalBatch ((0,0), model) $ zip (chunksOf batchSize trData) (chunksOf batchSize valid)
 
 > batchSize :: Int
 > batchSize = 20
