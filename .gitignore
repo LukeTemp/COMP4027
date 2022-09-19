@@ -1,2 +1,6 @@
 .DS_Store
 dist-newstyle
+src/*.hi
+src/*.o
+src/*.exe
+mnist/*
